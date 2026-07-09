@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthLayout from "./AuthLayout";
 import { AuthInput } from "./AuthInput";
-import { login } from "@/lib/api";
+import { useAuth } from "./AuthProvider";
 
 export default function LoginComponent() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,8 +20,8 @@ export default function LoginComponent() {
     setError("");
     setLoading(true);
     try {
-      await login({ email, password });
-      router.push("/"); // or /tasks when that exists
+      await login(email, password);
+      router.push("/dashboard/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

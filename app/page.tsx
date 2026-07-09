@@ -1,7 +1,10 @@
 import LoginPage from "./auth/login/page";
+import GuestGuard from "@/components/auth/GuestGuard";
 
 export default function Home() {
   return (
-   <LoginPage />
+    <GuestGuard>
+      <LoginPage />
+    </GuestGuard>
   );
 }

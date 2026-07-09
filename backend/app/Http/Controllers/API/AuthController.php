@@ -13,10 +13,12 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ]);
+
+        $data['password'] = Hash::make($data['password']);
 
         $user = User::create($data);
         $token = $user->createToken('api-token')->plainTextToken;
@@ -40,6 +42,11 @@ class AuthController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json(['user' => $user, 'token' => $token]);
+    }
+
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
     }
 
     public function logout(Request $request)
