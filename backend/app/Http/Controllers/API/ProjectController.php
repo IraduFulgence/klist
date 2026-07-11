@@ -22,16 +22,26 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
+        // check if the user is an admin or project manager
+        if((!in_array($request->user()->role, ['admin', 'project_manager']))) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'manager_id' => 'required|exists:users,id',
+            'status' => 'required|string|max:100',
+            'budget' => 'required|numeric|min:0',
+            'priority' => 'required|string|max:50',
+            'owner' => 'required',
+            'completion_percentage' => 'nullable|numeric|min:0|max:100',
+
             'color' => 'nullable|string|max:20',
         ]);
 
-        $project = $request->user()->ownedProjects()->create($data);
-        $project->members()->attach($request->user()->id, ['role' => 'owner']);
-        $project->load('owner:id,name,email');
-        $project->loadCount(['tasks', 'members']);
+        $project = new Project($data);
 
         return response()->json($project, 201);
     }

@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'description', 'color', 'owner_id'])]
+// #[Fillable(['name', 'description', 'color', 'owner_id'])]
 class Project extends Model
 {
+    protected $fillable =['name','owner','manager_id','end_date','description','color','start_date','status','budget','priority','completion_percentage' ];
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class);

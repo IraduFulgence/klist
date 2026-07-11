@@ -19,8 +19,9 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
+    Route::get('/admin/users', [AuthController::class, 'getAllUsers']);
     Route::post('/logout', [AuthController::class, 'logout']);
-
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 
 
     Route::apiResource('tasks', TaskController::class);
@@ -33,6 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy']);
  // create proect manager
     Route::post('/admin/add-project-manager', [AuthController::class, 'createProjectManager']);
+    // admin and proect manager adding users to system
+    Route::post('/add-user', [AuthController::class, 'createUser']);
+
+    // admin and project manager can create projects
+    Route::post('/projects/create', [ProjectController::class, 'store']);
     });
 // admin routes
 
