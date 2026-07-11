@@ -15,6 +15,7 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
+            'telephone' => 'required|string|max:20|unique:users,telephone|min:12|regex:/^\+?[0-9]{10,15}$/',
             'password' => 'required|string|min:8',
         ]);
 
@@ -52,7 +53,32 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()?->delete();
-
+        // let's also update the user's last_seen and is_online status
+        $user = $request->user();
+        $user->last_seen = now();
+        $user->is_online = false;
+        $user->save();
         return response()->json(['message' => 'Logged out']);
+    }
+    // admin create project manager
+    public function createProjectManager(Request $request)
+    {
+        // check if the authenticated user is an admin
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'telephone' => 'required|string|max:20|unique:users,telephone|min:12|regex:/^\+?[0-9]{10,15}$/',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $data['password'] = Hash::make($data['password']);
+
+        $user = User::create(array_merge($data, ['role' => 'project_manager']));
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json(['user' => $user, 'token' => $token], 201);
     }
 }

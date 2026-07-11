@@ -19,13 +19,14 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password','role','telephone','department_id','last_seen','is_online'];
     protected $hidden = ['password', 'remember_token'];
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_seen' => 'datetime',
         ];
     }
 

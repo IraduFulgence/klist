@@ -21,6 +21,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
+
+
     Route::apiResource('tasks', TaskController::class);
     Route::get('/activities', [ActivityController::class, 'index']);
 
@@ -29,4 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects/{project}/members', [ProjectMemberController::class, 'index']);
     Route::post('/projects/{project}/members', [ProjectMemberController::class, 'store']);
     Route::delete('/projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy']);
-});
+ // create proect manager
+    Route::post('/admin/add-project-manager', [AuthController::class, 'createProjectManager']);
+    });
+// admin routes
+

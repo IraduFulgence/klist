@@ -11,9 +11,13 @@ return new class extends Migration
         Schema::table('tasks', function (Blueprint $table) {
             $table->foreignId('project_id')->nullable()->after('user_id')->constrained()->nullOnDelete();
             $table->foreignId('assignee_id')->nullable()->after('project_id')->constrained('users')->nullOnDelete();
-            $table->string('status')->default('todo')->after('completed');
-            $table->string('priority')->default('medium')->after('status');
+            $table->enum('status', ['todo', 'in_progress', 'completed','onhold','cancelled'])->default('todo')->after('completed');
+            $table->enum('priority', ['low', 'medium', 'high','critical'])->default('medium')->after('status');
             $table->integer('position')->default(0)->after('priority');
+            $table->foreignId('milestone_id')->nullable()->after('position')->constrained('milestones')->nullOnDelete();
+            $table->string('estimated_hours')->nullable()->after('milestone_id');
+            $table->string('actual_hours')->nullable()->after('estimated_hours');
+            
         });
     }
 

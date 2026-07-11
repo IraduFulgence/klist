@@ -24,6 +24,7 @@ export default function LoginComponent() {
       router.push("/dashboard/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
+      console.log(err);
     } finally {
       setLoading(false);
     }
