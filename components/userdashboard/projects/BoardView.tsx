@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
 import * as api from "@/lib/api";
 import type { Project, Task, TaskStatus } from "@/lib/api";
+import { usePermission } from "@/lib/permissions";
 import { BOARD_COLUMNS, groupTasksByStatus, priorityColor } from "@/lib/task-utils";
 import { PencilIcon, PlusIcon, UsersIcon } from "@/components/userdashboard/layout/icons";
 import TaskModal from "@/components/userdashboard/tasks/TaskModal";
 import ProjectFormModal from "./ProjectFormModal";
 import MembersModal from "./MembersModal";
+import MilestoneList from "@/components/userdashboard/milestones/MilestoneList";
+import DocumentUploadPanel from "@/components/userdashboard/documents/DocumentUploadPanel";
+import BudgetPanel from "@/components/userdashboard/budget/BudgetPanel";
 
 type Columns = Record<TaskStatus, Task[]>;
 
@@ -17,7 +20,7 @@ function reorderColumns(current: Columns, taskId: number, toStatus: TaskStatus, 
   const next: Columns = {
     todo: [...current.todo],
     in_progress: [...current.in_progress],
-    done: [...current.done],
+    completed: [...current.completed],
   };
 
   let moved: Task | undefined;
@@ -30,17 +33,21 @@ function reorderColumns(current: Columns, taskId: number, toStatus: TaskStatus, 
   }
   if (!moved) return current;
 
-  moved = { ...moved, status: toStatus, completed: toStatus === "done" };
+  moved = { ...moved, status: toStatus, completed: toStatus === "completed" };
   const insertAt = toIndex ?? next[toStatus].length;
   next[toStatus].splice(insertAt, 0, moved);
   return next;
 }
 
+const TABS = ["board", "milestones", "documents", "budget"] as const;
+type Tab = (typeof TABS)[number];
+const TAB_LABELS: Record<Tab, string> = { board: "Board", milestones: "Milestones", documents: "Documents", budget: "Budget" };
+
 export default function BoardView({ projectId }: { projectId: number }) {
-  const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
-  const [columns, setColumns] = useState<Columns>({ todo: [], in_progress: [], done: [] });
+  const [columns, setColumns] = useState<Columns>({ todo: [], in_progress: [], completed: [] });
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Tab>("board");
   const [taskModal, setTaskModal] = useState<{ open: boolean; task: Task | null; status: TaskStatus }>({
     open: false,
     task: null,
@@ -51,6 +58,9 @@ export default function BoardView({ projectId }: { projectId: number }) {
   const [taskModalKey, setTaskModalKey] = useState(0);
   const [editProjectKey, setEditProjectKey] = useState(0);
   const draggedId = useRef<number | null>(null);
+  const canEditProject = usePermission("project:edit", { project });
+  const canDeleteProject = usePermission("project:delete", { project });
+  const canViewBudget = usePermission("budget:manage", { project });
 
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +84,7 @@ export default function BoardView({ projectId }: { projectId: number }) {
         const updated = await api.reorderTasks(projectId, {
           todo: next.todo.map((t) => t.id),
           in_progress: next.in_progress.map((t) => t.id),
-          done: next.done.map((t) => t.id),
+          completed: next.completed.map((t) => t.id),
         });
         setColumns(groupTasksByStatus(updated));
       } catch {
@@ -108,7 +118,7 @@ export default function BoardView({ projectId }: { projectId: number }) {
       const withoutTask: Columns = {
         todo: prev.todo.filter((t) => t.id !== task.id),
         in_progress: prev.in_progress.filter((t) => t.id !== task.id),
-        done: prev.done.filter((t) => t.id !== task.id),
+        completed: prev.completed.filter((t) => t.id !== task.id),
       };
       withoutTask[task.status] = [task, ...withoutTask[task.status]];
       return withoutTask;
@@ -126,8 +136,6 @@ export default function BoardView({ projectId }: { projectId: number }) {
     return <p className="text-sm text-zinc-400">Loading board…</p>;
   }
 
-  const isOwner = user?.id === project.owner_id;
-
   return (
     <div className="space-y-6">
       <div>
@@ -140,7 +148,7 @@ export default function BoardView({ projectId }: { projectId: number }) {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{project.name}</h1>
-                {isOwner && (
+                {canEditProject && (
                   <button
                     type="button"
                     onClick={() => {
@@ -184,6 +192,28 @@ export default function BoardView({ projectId }: { projectId: number }) {
         </div>
       </div>
 
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {TABS.filter((t) => t !== "budget" || canViewBudget).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              tab === t
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "bg-white text-zinc-600 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            }`}
+          >
+            {TAB_LABELS[t]}
+          </button>
+        ))}
+      </div>
+
+      {tab === "milestones" && <MilestoneList project={project} />}
+      {tab === "documents" && <DocumentUploadPanel project={project} />}
+      {tab === "budget" && <BudgetPanel project={project} />}
+
+      {tab === "board" && (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {BOARD_COLUMNS.map((col) => (
           <div
@@ -267,6 +297,7 @@ export default function BoardView({ projectId }: { projectId: number }) {
           </div>
         ))}
       </div>
+      )}
 
       <TaskModal
         key={taskModalKey}
@@ -286,7 +317,7 @@ export default function BoardView({ projectId }: { projectId: number }) {
       />
       <MembersModal open={membersOpen} onClose={() => setMembersOpen(false)} project={project} />
 
-      {isOwner && (
+      {canDeleteProject && (
         <div className="pt-4 text-right">
           <button
             type="button"

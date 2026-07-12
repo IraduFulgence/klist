@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import * as api from "@/lib/api";
 import type { Project, User } from "@/lib/api";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { usePermission } from "@/lib/permissions";
 import { TrashIcon, XIcon } from "../layout/icons";
 
 export default function MembersModal({
@@ -15,13 +15,12 @@ export default function MembersModal({
   onClose: () => void;
   project: Project;
 }) {
-  const { user } = useAuth();
   const [members, setMembers] = useState<(User & { pivot: { role: string } })[]>([]);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isOwner = user?.id === project.owner_id;
+  const canManageMembers = usePermission("project:edit", { project });
 
   useEffect(() => {
     if (!open) return;
@@ -70,7 +69,7 @@ export default function MembersModal({
           </button>
         </div>
 
-        {isOwner && (
+        {canManageMembers && (
           <form onSubmit={handleInvite} className="mb-4 flex gap-2">
             <input
               type="email"
@@ -108,7 +107,7 @@ export default function MembersModal({
                   <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium uppercase text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                     {m.pivot.role}
                   </span>
-                  {isOwner && m.pivot.role !== "owner" && (
+                  {canManageMembers && m.pivot.role !== "owner" && (
                     <button
                       type="button"
                       onClick={() => handleRemove(m.id)}

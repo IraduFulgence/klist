@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import * as api from "@/lib/api";
 import type { Project } from "@/lib/api";
+import { usePermission } from "@/lib/permissions";
 import { PlusIcon, UsersIcon } from "@/components/userdashboard/layout/icons";
 import ProjectFormModal from "./ProjectFormModal";
 
 export default function ProjectsView() {
+  const canCreateProject = usePermission("project:create");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,17 +37,19 @@ export default function ProjectsView() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Projects</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Boards you own or collaborate on.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setModalKey((k) => k + 1);
-            setModalOpen(true);
-          }}
-          className="flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          <PlusIcon className="h-4 w-4" />
-          New Project
-        </button>
+        {canCreateProject && (
+          <button
+            type="button"
+            onClick={() => {
+              setModalKey((k) => k + 1);
+              setModalOpen(true);
+            }}
+            className="flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            <PlusIcon className="h-4 w-4" />
+            New Project
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -77,6 +81,7 @@ export default function ProjectsView() {
                   <UsersIcon className="h-3.5 w-3.5" />
                   {project.members_count ?? 1}
                 </span>
+                {project.manager && <span className="truncate">Manager: {project.manager.name}</span>}
               </div>
             </Link>
           ))}

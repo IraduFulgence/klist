@@ -3,17 +3,41 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { FolderIcon, HomeIcon, TasksIcon } from "./icons";
+import type { Role } from "@/lib/api";
+import {
+  BuildingIcon,
+  ChartBarIcon,
+  FolderIcon,
+  GearIcon,
+  HomeIcon,
+  TasksIcon,
+  UsersIcon,
+} from "./icons";
 
-const NAV = [
-  { href: "/dashboard/home", label: "Home", icon: HomeIcon },
-  { href: "/dashboard/tasks", label: "My Tasks", icon: TasksIcon },
-  { href: "/dashboard/projects", label: "Projects", icon: FolderIcon },
-];
+type NavItem = { href: string; label: string; icon: typeof HomeIcon };
+
+const HOME: NavItem = { href: "/dashboard/home", label: "Home", icon: HomeIcon };
+const PROJECTS: NavItem = { href: "/dashboard/projects", label: "Projects", icon: FolderIcon };
+const TASKS: NavItem = { href: "/dashboard/tasks", label: "My Tasks", icon: TasksIcon };
+const REPORTS: NavItem = { href: "/dashboard/reports", label: "Reports", icon: ChartBarIcon };
+
+const ROLE_NAV: Record<Role, NavItem[]> = {
+  admin: [
+    HOME,
+    PROJECTS,
+    { href: "/dashboard/team", label: "Employees", icon: UsersIcon },
+    { href: "/dashboard/departments", label: "Departments", icon: BuildingIcon },
+    REPORTS,
+    { href: "/dashboard/settings", label: "Settings", icon: GearIcon },
+  ],
+  project_manager: [HOME, PROJECTS, TASKS, REPORTS],
+  user: [HOME, TASKS, PROJECTS],
+};
 
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const nav = user ? ROLE_NAV[user.role] : [HOME];
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-zinc-900">
@@ -23,7 +47,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname?.startsWith(`${href}/`);
           return (
             <Link

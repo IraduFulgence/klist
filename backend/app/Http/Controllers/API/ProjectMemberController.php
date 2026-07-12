@@ -18,7 +18,7 @@ class ProjectMemberController extends Controller
 
     public function store(Project $project, Request $request)
     {
-        $this->authorizeOwner($project, $request->user());
+        $this->authorizeManager($project, $request->user());
 
         $data = $request->validate([
             'email' => 'required|email|exists:users,email',
@@ -37,10 +37,10 @@ class ProjectMemberController extends Controller
 
     public function destroy(Project $project, User $user, Request $request)
     {
-        $this->authorizeOwner($project, $request->user());
+        $this->authorizeManager($project, $request->user());
 
-        if ($user->id === $project->owner_id) {
-            abort(422, 'Cannot remove the project owner');
+        if ($user->id === $project->manager_id) {
+            abort(422, 'Cannot remove the project manager');
         }
 
         $project->members()->detach($user->id);
@@ -55,9 +55,9 @@ class ProjectMemberController extends Controller
         }
     }
 
-    protected function authorizeOwner(Project $project, $user): void
+    protected function authorizeManager(Project $project, $user): void
     {
-        if ($project->owner_id !== $user->id) {
+        if (! $project->isManager($user)) {
             abort(403);
         }
     }

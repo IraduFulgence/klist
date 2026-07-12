@@ -19,7 +19,7 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected $fillable = ['name', 'email', 'password','role','telephone','department_id','last_seen','is_online'];
+    protected $fillable = ['name', 'email', 'password','role','telephone','department_id','last_seen','is_online','is_active'];
     protected $hidden = ['password', 'remember_token'];
     protected function casts(): array
     {
@@ -27,6 +27,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_seen' => 'datetime',
+            'is_online' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -44,11 +46,16 @@ class User extends Authenticatable
     }
 
     /**
-     * Projects owned by the user
+     * Projects managed by the user
      */
-    public function ownedProjects()
+    public function managedProjects()
     {
-        return $this->hasMany(Project::class, 'owner_id');
+        return $this->hasMany(Project::class, 'manager_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 
     /**

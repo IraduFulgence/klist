@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import * as api from "@/lib/api";
 import type { Project, Task, TaskInput, TaskPriority, TaskStatus, User } from "@/lib/api";
 import { toDateInputValue } from "@/lib/task-utils";
-import { XIcon } from "../layout/icons";
+import { usePermission } from "@/lib/permissions";
+import { DocumentIcon, PlusIcon, XIcon } from "../layout/icons";
+import CommentThread from "@/components/userdashboard/comments/CommentThread";
 
 type Props = {
   open: boolean;
@@ -28,6 +30,9 @@ export default function TaskModal({ open, onClose, onSaved, task, projects, lock
   const [members, setMembers] = useState<(User & { pivot: { role: string } })[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [taskFiles, setTaskFiles] = useState<import("@/lib/api").ProjectFile[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const canAssignOthers = usePermission("task:assign");
 
   useEffect(() => {
     if (!projectId) return;
@@ -40,7 +45,31 @@ export default function TaskModal({ open, onClose, onSaved, task, projects, lock
     };
   }, [projectId]);
 
+  useEffect(() => {
+    if (!isEdit || !task?.project_id) return;
+    let cancelled = false;
+    api.getProjectFiles(task.project_id, task.id).then((data) => {
+      if (!cancelled) setTaskFiles(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isEdit, task?.project_id, task?.id]);
+
   if (!open) return null;
+
+  async function handleUploadWork(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !task?.project_id) return;
+    setUploading(true);
+    try {
+      const saved = await api.uploadProjectFile(task.project_id, file, task.id);
+      setTaskFiles((prev) => [saved, ...prev]);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -138,7 +167,7 @@ export default function TaskModal({ open, onClose, onSaved, task, projects, lock
               >
                 <option value="todo">To Do</option>
                 <option value="in_progress">In Progress</option>
-                <option value="done">Done</option>
+                <option value="completed">Done</option>
               </select>
             </div>
 
@@ -164,7 +193,7 @@ export default function TaskModal({ open, onClose, onSaved, task, projects, lock
             )}
           </div>
 
-          {projectId && (
+          {projectId && canAssignOthers && (
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-400">Assignee</label>
               <select
@@ -201,6 +230,38 @@ export default function TaskModal({ open, onClose, onSaved, task, projects, lock
             </button>
           </div>
         </form>
+
+        {isEdit && task?.project_id && (
+          <div className="mt-4 space-y-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Completed work</h3>
+              <label className="flex cursor-pointer items-center gap-1 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                <PlusIcon className="h-3.5 w-3.5" />
+                {uploading ? "Uploading…" : "Upload"}
+                <input type="file" className="hidden" onChange={handleUploadWork} disabled={uploading} />
+              </label>
+            </div>
+            {taskFiles.length === 0 ? (
+              <p className="text-sm text-zinc-400">No files uploaded yet.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {taskFiles.map((f) => (
+                  <li key={f.id}>
+                    <a
+                      href={api.getFileDownloadUrl(f.id)}
+                      className="flex items-center gap-2 text-sm text-zinc-700 hover:underline dark:text-zinc-200"
+                    >
+                      <DocumentIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+                      <span className="truncate">{f.file_name}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {isEdit && <CommentThread taskId={task!.id} />}
       </div>
     </div>
   );

@@ -82,7 +82,7 @@ type TaskPriority = import("@/lib/api").TaskPriority;
 export const BOARD_COLUMNS: { key: TaskStatus; label: string }[] = [
   { key: "todo", label: "To Do" },
   { key: "in_progress", label: "In Progress" },
-  { key: "done", label: "Done" },
+  { key: "completed", label: "Done" },
 ];
 
 export function statusLabel(status: TaskStatus): string {
@@ -99,7 +99,7 @@ export function priorityColor(priority: TaskPriority): string {
 }
 
 export function groupTasksByStatus(tasks: TaskLike[]): Record<TaskStatus, TaskLike[]> {
-  const groups: Record<TaskStatus, TaskLike[]> = { todo: [], in_progress: [], done: [] };
+  const groups: Record<TaskStatus, TaskLike[]> = { todo: [], in_progress: [], completed: [] };
   for (const task of tasks) {
     (groups[task.status] ?? groups.todo).push(task);
   }

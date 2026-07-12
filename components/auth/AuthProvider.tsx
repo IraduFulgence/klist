@@ -10,10 +10,14 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import * as api from "@/lib/api";
-import type { User } from "@/lib/api";
+import type { Role, User } from "@/lib/api";
 
 type AuthContextValue = {
   user: User | null;
+  role: Role | null;
+  isAdmin: boolean;
+  isProjectManager: boolean;
+  isTeamMember: boolean;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -85,6 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       user,
+      role: user?.role ?? null,
+      isAdmin: user?.role === "admin",
+      isProjectManager: user?.role === "project_manager",
+      isTeamMember: user?.role === "user",
       isLoading,
       isAuthenticated: user !== null,
       login,

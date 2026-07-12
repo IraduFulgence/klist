@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -64,44 +63,9 @@ class AuthController extends Controller
         $user->save();
         return response()->json(['message' => 'Logged out']);
     }
-    // admin create project manager
-    public function createProjectManager(Request $request)
-    {
-        // check if the authenticated user is an admin
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'telephone' => 'required|string|max:20|unique:users,telephone|min:12|regex:/^\+?[0-9]{10,15}$/',
-            'password' => 'required|string|min:8',
-        ]);
-
-        $data['password'] = Hash::make($data['password']);
-
-        $user = User::create(array_merge($data, ['role' => 'project_manager']));
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json(['user' => $user, 'token' => $token], 201);
-    }
-    // admin get all users
-    public function getAllUsers()
-    {
-        // check if the authenticated user is an admin
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);    
-        }
-        $users = User::all();
-        return response()->json(['users' => $users]);
-    }
-    // admin and project manager adding users to system
+    // admin and project manager adding team members to system
     public function createUser(Request $request)
     {
-        // check if the authenticated user is an admin or project manager
-        if (!in_array(Auth::user()->role, ['admin', 'project_manager'])) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
