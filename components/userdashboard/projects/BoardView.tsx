@@ -300,7 +300,7 @@ export default function BoardView({ projectId }: { projectId: number }) {
       )}
 
       <TaskModal
-        key={taskModalKey}
+        key={`task-modal-${taskModalKey}`}
         open={taskModal.open}
         onClose={() => setTaskModal((s) => ({ ...s, open: false }))}
         onSaved={upsertTask}
@@ -309,7 +309,7 @@ export default function BoardView({ projectId }: { projectId: number }) {
         initialStatus={taskModal.status}
       />
       <ProjectFormModal
-        key={editProjectKey}
+        key={`project-form-${editProjectKey}`}
         open={editProjectOpen}
         onClose={() => setEditProjectOpen(false)}
         onSaved={(p) => setProject(p)}
