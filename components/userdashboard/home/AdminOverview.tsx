@@ -30,10 +30,10 @@ export default function AdminOverview() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-2xl font-semibold text-zinc-900">
           Welcome back{user ? `, ${user.name.split(" ")[0]}` : ""}
         </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Here&apos;s how the organization is doing.</p>
+        
       </div>
 
       {loading || !report ? (

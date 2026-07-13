@@ -32,12 +32,12 @@ export default function LoginComponent() {
 
   return (
     <AuthLayout title="Sign in" subtitle="Welcome back to Klist">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 ">
         <AuthInput
           label="Email"
           type="email"
           autoComplete="email"
-          required
+          
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -45,21 +45,16 @@ export default function LoginComponent() {
           label="Password"
           type="password"
           autoComplete="current-password"
-          required
+          
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={loading} /* ...classes above */>
+        <button type="submit" disabled={loading} className="w-full rounded-lg bg-green-900 px-4 py-2 text-sm font-semibold text-white hover:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50">
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
-        No account?{" "}
-        <Link href="/auth/register" className="font-medium text-zinc-950 dark:text-zinc-50">
-          Create one
-        </Link>
-      </p>
+      
     </AuthLayout>
   );
 }

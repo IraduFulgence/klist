@@ -8,7 +8,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-white ">
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col md:border-r md:border-zinc-200 md:dark:border-zinc-800">
         <Sidebar />
       </div>
@@ -20,7 +20,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             className="fixed inset-0 bg-black/40"
             onClick={() => setOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 w-72 max-w-[80vw] border-r border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="fixed inset-y-0 left-0 w-72 max-w-[80vw] border-r border-zinc-200 bg-white shadow-xl dark:border-zinc-800">
             <div className="flex justify-end p-2">
               <button
                 type="button"

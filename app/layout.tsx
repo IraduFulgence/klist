@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Professional Todo List",
-  description: "A professional todo list built with Next.js, Tailwind CSS, and TypeScript",
+  title: "Professional PM System",
+  description: "A professional project management system",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-white font-sans text-zinc-900 ">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
